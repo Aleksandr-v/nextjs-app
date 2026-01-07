@@ -1,6 +1,5 @@
 'use client'
 
-import WebApp from "@twa-dev/sdk";
 import { useEffect, useState } from "react";
 
 interface UserData {
@@ -14,12 +13,27 @@ interface UserData {
 
 export default function Home() {
   const [userData, setUserData] = useState<UserData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (WebApp.initDataUnsafe.user) {
-      setUserData(WebApp.initDataUnsafe.user as UserData)
-    }
+    import('@twa-dev/sdk').then((WebApp) => {
+      if (WebApp.default.initDataUnsafe?.user) {
+        setUserData(WebApp.default.initDataUnsafe.user as UserData)
+      }
+      setIsLoading(false)
+    }).catch((error) => {
+      console.log('Failed to load TWA SDK:', error)
+      setIsLoading(false)
+    })
   }, [])
+
+  if (isLoading) {
+    return (
+      <main className="p-4">
+        <div>Initializing Telegram Web App...</div>
+      </main>
+    )
+  }
 
   return (
     <main className="p-4">  
@@ -39,7 +53,10 @@ export default function Home() {
           </>
         ) : 
         (
-          <div>Loading ...</div>
+          <div className="text-center py-8">
+            <h2 className="text-xl font-semibold mb-2">No User Data Found</h2>
+            <p className="text-gray-600">Make sure you're opening this from Telegram</p>
+          </div>
         )
       }
     </main>
